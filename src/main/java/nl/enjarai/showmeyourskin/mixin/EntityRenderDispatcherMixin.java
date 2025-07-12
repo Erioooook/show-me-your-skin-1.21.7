@@ -1,40 +1,49 @@
-package nl.enjarai.showmeyourskin.mixin;
+package nl.enjarai.showmeyourskin.client;
 
-import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.client.render.entity.EntityRenderDispatcher;
-import net.minecraft.client.render.entity.EntityRenderer;
-import net.minecraft.client.render.entity.state.EntityRenderState;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.entity.Entity;
-import nl.enjarai.showmeyourskin.util.IWishMixinAllowedForPublicStaticFields;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import net.minecraft.client.render.RenderLayer;
+import net.minecraft.client.render.RenderPhase;
+import net.minecraft.client.render.VertexFormat;
+import net.minecraft.client.render.VertexFormats;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.TriState;
+import net.minecraft.util.Util;
 
-@Mixin(EntityRenderDispatcher.class)
-public class EntityRenderDispatcherMixin {
-    @Inject(
-            method = "render(Lnet/minecraft/entity/Entity;DDDFLnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider;ILnet/minecraft/client/render/entity/EntityRenderer;)V",
-            at = @At("HEAD")
-    )
-    private <E extends Entity, S extends EntityRenderState> void captureEntityContext(E entity, double x, double y, double z,
-                                                                                      float tickDelta, MatrixStack matrices,
-                                                                                      VertexConsumerProvider vertexConsumers,
-                                                                                      int light, EntityRenderer<? super E, S> renderer,
-                                                                                      CallbackInfo ci) {
-        IWishMixinAllowedForPublicStaticFields.currentEntity = entity;
-    }
+import java.util.function.Function;
 
-    @Inject(
-            method = "render(Lnet/minecraft/entity/Entity;DDDFLnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider;ILnet/minecraft/client/render/entity/EntityRenderer;)V",
-            at = @At("RETURN")
-    )
-    private <E extends Entity, S extends EntityRenderState> void clearEntityContext(E entity, double x, double y, double z,
-                                                                                      float tickDelta, MatrixStack matrices,
-                                                                                      VertexConsumerProvider vertexConsumers,
-                                                                                      int light, EntityRenderer<? super E, S> renderer,
-                                                                                      CallbackInfo ci) {
-        IWishMixinAllowedForPublicStaticFields.currentEntity = null;
-    }
+import static net.minecraft.client.render.RenderPhase.*;
+
+public class ModRenderLayers {
+    public static final Function<Identifier, RenderLayer> ARMOR_TRANSLUCENT_DECAL_NO_CULL = Util.memoize(texture -> {
+        var params = RenderLayer.MultiPhaseParameters.builder()
+                .program(ARMOR_CUTOUT_NO_CULL_PROGRAM)
+                .texture(new RenderPhase.Texture(texture, TriState.FALSE, false))
+                .transparency(TRANSLUCENT_TRANSPARENCY)
+                .cull(DISABLE_CULLING)
+                .lightmap(ENABLE_LIGHTMAP)
+                .overlay(ENABLE_OVERLAY_COLOR)
+                .layering(VIEW_OFFSET_Z_LAYERING)
+                .depthTest(EQUAL_DEPTH_TEST)
+                .build(true);
+        return RenderLayer.of(
+                "armor_translucent_no_cull", VertexFormats.POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL,
+                VertexFormat.DrawMode.QUADS, 1536, true, true, params
+        );
+    });
+
+    public static final Function<Identifier, RenderLayer> ARMOR_TRANSLUCENT_NO_CULL = Util.memoize(texture -> {
+        var params = RenderLayer.MultiPhaseParameters.builder()
+                .program(ARMOR_CUTOUT_NO_CULL_PROGRAM)
+                .texture(new RenderPhase.Texture(texture, TriState.FALSE, false))
+                .transparency(TRANSLUCENT_TRANSPARENCY)
+                .cull(DISABLE_CULLING)
+                .lightmap(ENABLE_LIGHTMAP)
+                .overlay(ENABLE_OVERLAY_COLOR)
+                .layering(VIEW_OFFSET_Z_LAYERING)
+                .depthTest(LEQUAL_DEPTH_TEST)
+                .build(true);
+        return RenderLayer.of(
+                "armor_translucent_no_cull", VertexFormats.POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL,
+                VertexFormat.DrawMode.QUADS, 1536, true, true, params
+        );
+    });
 }
