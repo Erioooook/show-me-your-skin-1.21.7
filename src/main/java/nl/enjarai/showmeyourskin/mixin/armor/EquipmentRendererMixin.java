@@ -9,7 +9,7 @@ import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.entity.equipment.EquipmentRenderer;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.equipment.EquipmentModel;
+import net.minecraft.client.render.entity.equipment.EquipmentModel;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.ColorHelper;
 import nl.enjarai.showmeyourskin.util.IWishMixinAllowedForPublicStaticFields;
